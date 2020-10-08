@@ -13,10 +13,6 @@ const board = () => {
 
 board();
 
-squareWrap.onclick = (e) => {
-    e.target.classList.toggle('square-busy');
-};
-
 let getPressedKey = '';
 
 document.addEventListener('keydown', (event) => {
@@ -49,16 +45,17 @@ document.addEventListener('keydown', (event) => {
     console.log(getPressedKey);
 });
 
+const socket = io();
 
-const writeEvent = (text) => {
-    const parent = document.querySelector('.test_div');
+squareWrap.addEventListener('click', (e) => {
+    socket.emit('player_clicked', {
+        playerID: socket.id,
+        position: e.target.classList[1]
+    });
+});
 
-    const elem = document.createElement('h1');
-    elem.innerHTML = text;
 
-    parent.appendChild(elem);
-};
-
-writeEvent('Hello!');
-const sock = io();
-sock.on('message', writeEvent);
+socket.on('player_clicked', data => {
+    let tmp = document.querySelector(`.${data.position}`);
+    tmp.classList.add('square-busy_player');
+});

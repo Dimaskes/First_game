@@ -3,13 +3,18 @@
     height: 394px;
     border: 1px solid #111;
 }
+
 .square {
     width: 49px;
     height: 49px;
     float: left;
     border: 0.1px solid #111;
 }
+
 .square-busy {
-    background: #111;
+    background: red;
 }
 
+.square-busy_player {
+    background: green;
+}

@@ -17,28 +17,33 @@ var player = {}
 
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-io.on('connection', (sock) => {
+io.on('connection', (socket) => {
+
     if (players.size < 2) {
         player = {
-            soketID: sock.id,
-            busyClass: `square-${getRandomInt(32,63)}`
+            soketID: socket.id,
         };
         players.add(player);
-        console.log(sock.id, 'connected');
-        sock.emit('message', 'Hi, you are connected');
+        console.log(socket.id, 'connected');
+        socket.emit('message', 'Hi, you are connected');
     } else {
         console.log('connect error! >2 players');
-        sock.emit('message', 'connect error! >2 players');
+        socket.emit('message', 'connect error! >2 players');
     }
 
-    sock.on('disconnect', () => {
+    socket.on('player_clicked', function(data) {
+        player.busyClass = data.position;
+        io.sockets.emit('player_clicked', data);
+        console.log(player);
+    });
+
+    socket.on('disconnect', () => {
         players.delete(player);
         console.log(player, 'отключился');
     });
 
     console.log(players);
 });
-
 
 
 server.on('error', (err) => {
