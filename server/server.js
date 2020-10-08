@@ -12,24 +12,17 @@ const server = http.createServer(app);
 
 const io = socketIO(server);
 
-
 var players = new Set();
 var player = {}
 
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 io.on('connection', (sock) => {
-    console.log(players);
     if (players.size < 2) {
-        if (player.size == 0) {
-            player = {
-                soketID: sock.id,
-                busyClass: 'square-1'
-            }
-        } else {
-            player = {
-                soketID: sock.id,
-                busyClass: 'square-4'
-            }
-        }
+        player = {
+            soketID: sock.id,
+            busyClass: `square-${getRandomInt(32,63)}`
+        };
         players.add(player);
         console.log(sock.id, 'connected');
         sock.emit('message', 'Hi, you are connected');
@@ -42,6 +35,8 @@ io.on('connection', (sock) => {
         players.delete(player);
         console.log(player, 'отключился');
     });
+
+    console.log(players);
 });
 
 
