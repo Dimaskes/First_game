@@ -15,7 +15,36 @@ const io = socketIO(server);
 var players = new Set();
 var player = {}
 
+const moveArray = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD']
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+function movement(strMove, busyClass) {
+    let newPosition = Number(busyClass.slice(7));
+    console.log(newPosition);
+    switch (strMove) {
+        case 'ArrowUp':
+            break;
+        case 'ArrowDown':
+            break;
+        case 'ArrowLeft':
+            break;
+        case 'ArrowRight':
+            break;
+        case 'KeyW':
+            newPosition -= 8;
+            break;
+        case 'KeyS':
+            newPosition += 8;
+            break;
+        case 'KeyA':
+            newPosition -= 1;
+            break;
+        case 'KeyD':
+            newPosition += 1;
+            break;
+    }
+    return newPosition;
+}
 
 io.on('connection', (socket) => {
 
@@ -31,10 +60,21 @@ io.on('connection', (socket) => {
         socket.emit('message', 'connect error! >2 players');
     }
 
-    socket.on('player_clicked', function(data) {
+    socket.on('first_player_position', function(data) {
         player.busyClass = data.position;
-        io.sockets.emit('player_clicked', data);
+        io.sockets.emit('first_player_position', data);
         console.log(player);
+    });
+
+    socket.on('movement', function(data) {
+        let move = data.move;
+        let prewPosition = player.busyClass;
+        let newPosition = movement(move, prewPosition);
+        io.sockets.emit('movement', {
+            newPos: newPosition,
+            prewPos: prewPosition
+        });
+        player.busyClass = `square-${newPosition}`;
     });
 
     socket.on('disconnect', () => {

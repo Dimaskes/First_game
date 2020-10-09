@@ -42,20 +42,35 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    console.log(getPressedKey);
+    socket.emit('movement', {
+        playerID: socket.id,
+        move: getPressedKey,
+    });
 });
 
 const socket = io();
 
+let state = true;
+
 squareWrap.addEventListener('click', (e) => {
-    socket.emit('player_clicked', {
-        playerID: socket.id,
-        position: e.target.classList[1]
-    });
+    if (state) {
+        socket.emit('first_player_position', {
+            playerID: socket.id,
+            position: e.target.classList[1]
+        });
+        state = false;
+    }
 });
 
-
-socket.on('player_clicked', data => {
+socket.on('first_player_position', data => {
     let tmp = document.querySelector(`.${data.position}`);
     tmp.classList.add('square-busy_player');
 });
+
+socket.on('movement', data => {
+    let tmp = document.querySelector(`.square-${data.newPos}`);
+    tmp.classList.add('square-busy_player');
+    let tmp2 = document.querySelector(`.${data.prewPos}`);
+    tmp2.classList.remove('square-busy_player');
+    console.log(tmp, tmp2)
+})
