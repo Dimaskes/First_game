@@ -42,10 +42,13 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    socket.emit('movement', {
-        playerID: socket.id,
-        move: getPressedKey,
-    });
+    if (!state) {
+        socket.emit('movement', {
+            playerID: socket.id,
+            move: getPressedKey,
+        });
+    }
+
 });
 
 const socket = io();
@@ -62,15 +65,19 @@ squareWrap.addEventListener('click', (e) => {
     }
 });
 
+
 socket.on('first_player_position', data => {
     let tmp = document.querySelector(`.${data.position}`);
     tmp.classList.add('square-busy_player');
 });
 
+
 socket.on('movement', data => {
-    let tmp = document.querySelector(`.square-${data.newPos}`);
-    tmp.classList.add('square-busy_player');
-    let tmp2 = document.querySelector(`.${data.prewPos}`);
-    tmp2.classList.remove('square-busy_player');
-    console.log(tmp, tmp2)
+    if (data.prewPos !== `square-${data.newPos}`) {
+        let tmp = document.querySelector(`.square-${data.newPos}`);
+        tmp.classList.add('square-busy_player');
+        let tmp2 = document.querySelector(`.${data.prewPos}`);
+        tmp2.classList.remove('square-busy_player');
+        console.log(data)
+    }
 })
