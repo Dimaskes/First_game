@@ -19,6 +19,8 @@ const leftBoards = [0, 8, 16, 24, 32, 40, 48, 56]
 const rightBoards = [7, 15, 23, 31, 39, 47, 55, 63]
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+const isBusy = (prewPosition, newPosition) => prewPosition === newPosition;
+
 function movement(strMove, busyClass) {
     let newPosition = Number(busyClass.slice(7));
     switch (strMove) {
@@ -54,27 +56,37 @@ function movement(strMove, busyClass) {
     return newPosition;
 }
 
+
 io.on('connection', (socket) => {
 
-    if (players.size < 2) {
+    if (players.size < 1) {
         player = {
-            soketID: socket.id,
+            socketID: socket.id,
+            playNum: 1,
         };
         players.add(player);
-        console.log(socket.id, 'connected');
-        socket.emit('message', 'Hi, you are connected');
+        console.log(player, 'connected');
+    } else if (players.size < 2) {
+        player = {
+            socketID: socket.id,
+            playNum: 2,
+        };
+        players.add(player);
+        console.log(player, 'connected');
     } else {
         console.log('connect error! >2 players');
-        socket.emit('message', 'connect error! >2 players');
     }
 
     socket.on('first_player_position', (data) => {
         player.busyClass = data.position;
+        players.add(player);
         io.sockets.emit('first_player_position', data);
         console.log(player);
+        console.log(players)
     });
 
     socket.on('movement', (data) => {
+        console.log(players);
         let move = data.move;
         let prewPosition = player.busyClass;
         let newPosition = movement(move, prewPosition);
@@ -83,6 +95,8 @@ io.on('connection', (socket) => {
             prewPos: prewPosition
         });
         player.busyClass = `square-${newPosition}`;
+        players.add(player);
+
     });
 
     socket.on('disconnect', () => {
@@ -90,7 +104,6 @@ io.on('connection', (socket) => {
         console.log(player, 'отключился');
     });
 
-    console.log(players);
 });
 
 
