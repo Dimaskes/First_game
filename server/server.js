@@ -59,40 +59,30 @@ function movement(strMove, busyClass) {
 
 io.on('connection', (socket) => {
 
-    if (players.size < 1) {
-        player = {
-            socketID: socket.id,
-            playNum: 1,
-        };
-        players.add(player);
-        console.log(player, 'connected');
-    } else if (players.size < 2) {
-        player = {
-            socketID: socket.id,
-            playNum: 2,
-        };
-        players.add(player);
-        console.log(player, 'connected');
-    } else {
-        console.log('connect error! >2 players');
-    }
+    player = {
+        socketID: socket.id
+    };
+    players.size < 1 ? player.playerNum = 1 : player.playerNum = 2;
+    players.add(player);
+    console.log(player, 'подключился');
+
 
     socket.on('first_player_position', (data) => {
         player.busyClass = data.position;
+        //console.log(player);
         players.add(player);
         io.sockets.emit('first_player_position', data);
-        console.log(player);
-        console.log(players)
+        console.log(players);
     });
 
     socket.on('movement', (data) => {
-        console.log(players);
+        //console.log(players);
         let move = data.move;
         let prewPosition = player.busyClass;
         let newPosition = movement(move, prewPosition);
         io.sockets.emit('movement', {
             newPos: newPosition,
-            prewPos: prewPosition
+            prewPos: prewPosition,
         });
         player.busyClass = `square-${newPosition}`;
         players.add(player);
@@ -102,6 +92,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         players.delete(player);
         console.log(player, 'отключился');
+        console.log(players, 'оставшиеся игроки')
     });
 
 });
