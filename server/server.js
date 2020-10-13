@@ -21,6 +21,31 @@ const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) +
 
 const isBusy = (prewPosition, newPosition) => prewPosition === newPosition;
 
+const goUp = (curPosition) => {
+    if (curPosition > 7) {
+        return curPosition - 8;
+    }
+    return curPosition;
+}
+const goDown = (curPosition) => {
+    if (curPosition < 56) {
+        return curPosition + 8;
+    }
+    return curPosition;
+}
+const goLeft = (curPosition) => {
+    if (leftBoards.indexOf(curPosition) === -1) {
+        return curPosition - 1;
+    }
+    return curPosition;
+};
+const goRight = (curPosition) => {
+    if (rightBoards.indexOf(curPosition) === -1) {
+        return curPosition + 1;
+    }
+    return curPosition;
+};
+
 function movement(strMove, busyClass) {
     let newPosition = Number(busyClass.slice(7));
     switch (strMove) {
@@ -33,24 +58,16 @@ function movement(strMove, busyClass) {
         case 'ArrowRight':
             break;
         case 'KeyW':
-            if (newPosition > 7) {
-                newPosition -= 8;
-            }
+            newPosition = goUp(newPosition);
             break;
         case 'KeyS':
-            if (newPosition < 56) {
-                newPosition += 8;
-            }
+            newPosition = goDown(newPosition);
             break;
         case 'KeyA':
-            if (leftBoards.indexOf(newPosition) === -1) {
-                newPosition -= 1;
-            }
+            newPosition = goLeft(newPosition);
             break;
         case 'KeyD':
-            if (rightBoards.indexOf(newPosition) === -1) {
-                newPosition += 1;
-            }
+            newPosition = goRight(newPosition);
             break;
     }
     return newPosition;
