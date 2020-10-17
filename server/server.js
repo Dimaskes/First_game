@@ -93,17 +93,16 @@ io.on('connection', (socket) => {
     console.log(player, 'подключился')
 
     socket.on('first_player_position', (data) => {
-        console.log(data.position)
         player.set(data.position);
         players.add(player);
         io.sockets.emit('first_player_position', data);
         console.log(players);
     });
 
+
     socket.on('movement', (data) => {
         // let tmp = 0;
         // players.forEach((item) => {
-        //     console.log(item.state);
         //     tmp += item.state
         // });
         // if (tmp === 2) {
@@ -126,6 +125,7 @@ io.on('connection', (socket) => {
         players.delete(player);
         console.log(player, 'отключился');
         console.log(players, 'оставшиеся игроки')
+        io.sockets.emit('refresh')
     });
 
 });

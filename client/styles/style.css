@@ -11,7 +11,7 @@
     border: 0.1px solid #111;
 }
 
-.square-busy {
+.square-busy_enemy {
     background: red;
 }
 

@@ -81,6 +81,9 @@ socket.on('movement', data => {
         let tmp2 = document.querySelector(`.${data.prewPos}`);
         tmp2.classList.remove('square-busy_player');
         stateStepFinished = data.state;
-        console.log(data)
     }
+})
+
+socket.on('refresh', () => {
+    window.location.reload();
 })
