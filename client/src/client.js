@@ -13,8 +13,7 @@ const board = () => {
 
 board();
 
-let getPressedKey = '';
-let stateFirstPosition = true;
+let firstPositionSelected = false;
 let stateStepFinished = 0;
 
 document.addEventListener('keydown', (event) => {
@@ -44,7 +43,7 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (!stateFirstPosition && !stateStepFinished) {
+    if (firstPositionSelected && !stateStepFinished) {
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
@@ -56,30 +55,30 @@ document.addEventListener('keydown', (event) => {
 const socket = io();
 
 squareWrap.addEventListener('click', (e) => {
-    if (stateFirstPosition) {
+    if (!firstPositionSelected) {
         socket.emit('first_player_position', {
             playerID: socket.id,
             position: e.target.classList[1]
         });
-        stateFirstPosition = false;
+        firstPositionSelected = true;
         stateStepFinished = 1;
     }
 });
 
 
 socket.on('first_player_position', data => {
-    let tmp = document.querySelector(`.${data.position}`);
-    tmp.classList.add('square-busy_player');
+    let selectedPosition = document.querySelector(`.${data.position}`);
+    selectedPosition.classList.add('square-busy_player');
 });
 
 
 socket.on('movement', data => {
 
     if (data.prewPos !== `square-${data.newPos}` && !stateStepFinished) {
-        let tmp = document.querySelector(`.square-${data.newPos}`);
-        tmp.classList.add('square-busy_player');
-        let tmp2 = document.querySelector(`.${data.prewPos}`);
-        tmp2.classList.remove('square-busy_player');
+        let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
+        newPlayerPosition.classList.add('square-busy_player');
+        let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
+        prewPlayerPosition.classList.remove('square-busy_player');
         stateStepFinished = data.state;
     }
 })

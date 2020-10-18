@@ -5,7 +5,6 @@ const socketIO = require('socket.io');
 const app = express();
 
 const clientPath = `${__dirname}/../client`;
-console.log(clientPath);
 app.use(express.static(clientPath));
 
 const server = http.createServer(app);
@@ -14,12 +13,22 @@ const io = socketIO(server);
 
 var players = new Set();
 
-
 let Player = require('./player');
+let Enemy = require('./enemy');
 
 const leftBoards = [0, 8, 16, 24, 32, 40, 48, 56]
 const rightBoards = [7, 15, 23, 31, 39, 47, 55, 63]
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const createEnemies = () => {
+    let enemies = new Set();
+    for (let i = 0; i < 4; i++) {
+        let enemy = new Enemy(getRandomInt(0, 31));
+        enemies.add(enemy);
+    }
+    return enemies;
+}
+
 
 // const isBusy = (firstPos, secondPos) => {
 //     console.log(secondPos)
@@ -88,7 +97,7 @@ function movement(strMove, busyClass) {
 
 io.on('connection', (socket) => {
 
-    var player = new Player(socket.id)
+    let player = new Player(socket.id)
     players.add(player);
     console.log(player, 'подключился')
 
