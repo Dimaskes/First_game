@@ -30,7 +30,7 @@ const createEnemies = () => {
 }
 
 
-const isBusy = (firstPos, secondPos) => firstPos === secondPos
+const isBusy = (firstPos, secondPos) => firstPos === secondPos;
 
 
 const goUp = (curPosition) => {
@@ -97,6 +97,30 @@ io.on('connection', (socket) => {
         players.add(player);
         io.sockets.emit('first_player_position', data);
         console.log(players);
+        // let playersCollision = false;
+
+        // console.log(Array.from(players).some(function(item) {
+        //     item === null
+        // }))
+
+        // if (!Array.from(players).some(function(item) {
+        //         item[1] === null
+        //     })) {
+        //     players.forEach((item) => {
+        //         console.log(data.position, item.position)
+        //         if (isBusy(Number(data.position.slice(7)), Number(item.position.slice(7)))) {
+        //             playersCollision = true
+        //         }
+        //     });
+        // }
+
+        // if (!playersCoalision) {
+        //     player.set(data.position);
+        //     players.add(player);
+        //     io.sockets.emit('first_player_position', data);
+        // } else {
+        //     console.log('нельзя занимать одну клетку')
+        // }
     });
 
 
@@ -112,14 +136,14 @@ io.on('connection', (socket) => {
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);
 
-        let coalision = false;
+        let playersCollision = false;
         players.forEach((item) => {
             if (isBusy(newPosition, Number(item.position.slice(7)))) {
-                coalision = true;
+                playersCollision = true;
             }
         });
 
-        if (!coalision) {
+        if (!playersCollision) {
             io.sockets.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
@@ -134,7 +158,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         players.delete(player);
         console.log(player, 'отключился');
-        console.log(players, 'оставшиеся игроки')
         io.sockets.emit('refresh')
     });
 

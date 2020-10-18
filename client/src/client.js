@@ -14,7 +14,7 @@ const board = () => {
 board();
 
 let firstPositionSelected = false;
-let stateStepFinished = 0;
+let moveCompleted = 0;
 
 document.addEventListener('keydown', (event) => {
     switch (event.code) {
@@ -43,7 +43,7 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (firstPositionSelected) {
+    if (firstPositionSelected) { // && !moveCompleted
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
@@ -61,7 +61,7 @@ squareWrap.addEventListener('click', (e) => {
             position: e.target.classList[1]
         });
         firstPositionSelected = true;
-        stateStepFinished = 1;
+        moveCompleted = 1;
     }
 });
 
@@ -74,12 +74,12 @@ socket.on('first_player_position', data => {
 
 socket.on('movement', data => {
 
-    if (data.prewPos !== `square-${data.newPos}`) {
+    if (data.prewPos !== `square-${data.newPos}`) { // && !moveCompleted
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
         prewPlayerPosition.classList.remove('square-busy_player');
-        stateStepFinished = data.state;
+        moveCompleted = data.state;
     }
 })
 
