@@ -30,16 +30,7 @@ const createEnemies = () => {
 }
 
 
-// const isBusy = (firstPos, secondPos) => {
-//     console.log(secondPos)
-//     console.log(typeof(secondPos))
-//     let secondPoss = Number(secondPos.slice(7));
-//     if (firstPos === secondPoss) {
-//         return true;
-//     } else {
-//         return false;
-//     }
-// }
+const isBusy = (firstPos, secondPos) => firstPos === secondPos
 
 
 const goUp = (curPosition) => {
@@ -120,14 +111,24 @@ io.on('connection', (socket) => {
         let move = data.move;
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);
-        io.sockets.emit('movement', {
-            newPos: newPosition,
-            prewPos: prewPosition,
-            state: player.state,
+
+        let coalision = false;
+        players.forEach((item) => {
+            if (isBusy(newPosition, Number(item.position.slice(7)))) {
+                coalision = true;
+            }
         });
-        player.set(`square-${newPosition}`);
-        players.add(player);
-        console.log(players);
+
+        if (!coalision) {
+            io.sockets.emit('movement', {
+                newPos: newPosition,
+                prewPos: prewPosition,
+                state: player.state,
+            });
+            player.set(`square-${newPosition}`);
+            players.add(player);
+            console.log(players);
+        }
     });
 
     socket.on('disconnect', () => {

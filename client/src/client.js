@@ -43,7 +43,7 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (firstPositionSelected && !stateStepFinished) {
+    if (firstPositionSelected) {
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
@@ -74,7 +74,7 @@ socket.on('first_player_position', data => {
 
 socket.on('movement', data => {
 
-    if (data.prewPos !== `square-${data.newPos}` && !stateStepFinished) {
+    if (data.prewPos !== `square-${data.newPos}`) {
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
