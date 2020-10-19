@@ -1,3 +1,8 @@
+// случайная ходьба компьютера
+// пересечения - убийства
+// стрельба
+// завершение игры
+
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
@@ -108,24 +113,58 @@ io.on('connection', (socket) => {
     console.log(player, 'подключился')
 
     socket.on('first_player_position', (data) => {
-        player.set(data.position);
-        players.add(player);
-        io.sockets.emit('first_player_position', data);
-        console.log(players);
 
-        if (playersMoveCompleted(players)) {
-            console.log('создание врагов');
-            enemiesArray = createEnemies();
-            let obj = {};
-            enemiesArray.forEach((item) => {
-                obj.position = item.position;
-                io.sockets.emit('spawn_enemies', obj);
+        let countNullFirstPos = 0;
+
+        players.forEach((item) => {
+            if (item.position === null)
+                countNullFirstPos += 1;
+        });
+
+        if (countNullFirstPos === 2) {
+            player.set(data.position);
+            players.add(player);
+            io.sockets.emit('first_player_position', data);
+            console.log(players);
+        } else {
+            let playersCollision = false;
+
+            players.forEach((item) => {
+                if (item.position !== null) {
+                    if (isBusy(Number(data.position.slice(7)), Number(item.position.slice(7)))) {
+                        playersCollision = true;
+                    }
+                }
             });
-            resetPlayersState(players);
+
+            if (!playersCollision) {
+                player.set(data.position);
+                players.add(player);
+                io.sockets.emit('first_player_position', data);
+            } else {
+                console.log('нельзя занимать одну клетку')
+                socket.emit('first_player_position-error', {
+                    message: 'вы выбрали занятую клетку',
+                    state: false,
+                })
+            }
+
+            if (playersMoveCompleted(players)) {
+                console.log('создание врагов');
+                enemiesArray = createEnemies();
+                let obj = {};
+                enemiesArray.forEach((item) => {
+                    obj.position = item.position;
+                    io.sockets.emit('spawn_enemies', obj);
+                });
+                resetPlayersState(players);
+            }
+
         }
 
 
-        // let playersCollision = false;
+
+
 
         // console.log(Array.from(players).some(function(item) {
         //     item === null

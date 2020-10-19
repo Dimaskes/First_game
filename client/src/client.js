@@ -72,6 +72,11 @@ squareWrap.addEventListener('click', (e) => {
     }
 });
 
+socket.on('first_player_position-error', data => {
+    firstPositionSelected = data.state;
+    console.log(data.message);
+})
+
 
 socket.on('first_player_position', data => {
     let selectedPosition = document.querySelector(`.${data.position}`);
