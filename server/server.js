@@ -42,6 +42,11 @@ const playersMoveCompleted = (players) => {
     return false;
 }
 
+const resetPlayersState = (players) => {
+    players.forEach((item) => {
+        item.state = 0;
+    })
+}
 
 const goUp = (curPosition) => {
     if (curPosition > 7) {
@@ -108,14 +113,15 @@ io.on('connection', (socket) => {
         io.sockets.emit('first_player_position', data);
         console.log(players);
 
-        arr = createEnemies();
-        console.log(arr.keys())
-
         if (playersMoveCompleted(players)) {
-            console.log('ходит компьютер');
-            arr = createEnemies();
-            console.log(arr)
-                // io.sockets.emit('spawn_enemies', { pos: arr.Enemy.position })
+            console.log('создание врагов');
+            enemiesArray = createEnemies();
+            let obj = {};
+            enemiesArray.forEach((item) => {
+                obj.position = item.position;
+                io.sockets.emit('spawn_enemies', obj);
+            });
+            resetPlayersState(players);
         }
 
 
@@ -160,13 +166,22 @@ io.on('connection', (socket) => {
         });
 
         if (!playersCollision) {
-            io.sockets.emit('movement', {
+
+            player.set(`square-${newPosition}`);
+            players.add(player);
+
+            socket.broadcast.emit('movement', {
+                newPos: newPosition,
+                prewPos: prewPosition,
+                state: 0,
+            })
+
+            socket.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
                 state: player.state,
             });
-            player.set(`square-${newPosition}`);
-            players.add(player);
+
             console.log(players);
         }
     });

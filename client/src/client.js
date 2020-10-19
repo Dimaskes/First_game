@@ -16,6 +16,13 @@ board();
 let firstPositionSelected = false;
 let moveCompleted = 0;
 
+const spawnEnemy = (position) => {
+    let tmp = `square-${position}`;
+    let tmpClassElem = document.querySelector(`.${tmp}`);
+    tmpClassElem.classList.add('square-busy_enemy');
+};
+
+
 document.addEventListener('keydown', (event) => {
     switch (event.code) {
         case 'ArrowUp':
@@ -43,7 +50,7 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (firstPositionSelected) { // && !moveCompleted
+    if (firstPositionSelected && !moveCompleted) {
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
@@ -55,7 +62,7 @@ document.addEventListener('keydown', (event) => {
 const socket = io();
 
 squareWrap.addEventListener('click', (e) => {
-    if (!firstPositionSelected) {
+    if (!firstPositionSelected && Number(e.target.classList[1].slice(7)) > 31) {
         socket.emit('first_player_position', {
             playerID: socket.id,
             position: e.target.classList[1]
@@ -72,13 +79,14 @@ socket.on('first_player_position', data => {
 });
 
 socket.on('spawn_enemies', data => {
-    console.log(data);
+    spawnEnemy(data.position);
+    moveCompleted = 0;
 })
 
 
 socket.on('movement', data => {
 
-    if (data.prewPos !== `square-${data.newPos}`) { // && !moveCompleted
+    if (data.prewPos !== `square-${data.newPos}` && !moveCompleted) {
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
