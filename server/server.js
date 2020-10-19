@@ -1,4 +1,3 @@
-// случайная ходьба компьютера
 // пересечения - убийства
 // стрельба
 // завершение игры
@@ -34,14 +33,28 @@ const createEnemies = () => {
     return enemies;
 }
 
+
+const moveEnemies = (enemies) => {
+    let curPositions = [];
+    enemiesArray.forEach((item) => curPositions.push(item.position))
+    enemies.forEach((item) => {
+        let numOfFunctionMove = getRandomInt(0, 3);
+        item.prewPos = item.position;
+        if (!curPositions.includes(arrMoveFunctions[numOfFunctionMove](item.position))) {
+            item.position = arrMoveFunctions[numOfFunctionMove](item.position);
+        }
+    })
+    return enemies;
+}
+
 const isBusy = (firstPos, secondPos) => firstPos === secondPos;
 
 const playersMoveCompleted = (players) => {
-    let tmp = 0;
+    let count = 0;
     players.forEach((item) => {
-        tmp += item.state;
+        count += item.state;
     });
-    if (tmp === 2) {
+    if (count === 2) {
         return true;
     }
     return false;
@@ -77,6 +90,8 @@ const goRight = (curPosition) => {
     }
     return curPosition;
 };
+
+const arrMoveFunctions = [goDown, goUp, goLeft, goRight]
 
 function movement(strMove, busyClass) {
     let newPosition = Number(busyClass.slice(7));
@@ -159,35 +174,7 @@ io.on('connection', (socket) => {
                 });
                 resetPlayersState(players);
             }
-
         }
-
-
-
-
-
-        // console.log(Array.from(players).some(function(item) {
-        //     item === null
-        // }))
-
-        // if (!Array.from(players).some(function(item) {
-        //         item[1] === null
-        //     })) {
-        //     players.forEach((item) => {
-        //         console.log(data.position, item.position)
-        //         if (isBusy(Number(data.position.slice(7)), Number(item.position.slice(7)))) {
-        //             playersCollision = true
-        //         }
-        //     });
-        // }
-
-        // if (!playersCoalision) {
-        //     player.set(data.position);
-        //     players.add(player);
-        //     io.sockets.emit('first_player_position', data);
-        // } else {
-        //     console.log('нельзя занимать одну клетку')
-        // }
     });
 
 
@@ -221,9 +208,44 @@ io.on('connection', (socket) => {
                 state: player.state,
             });
 
+            if (playersMoveCompleted(players)) {
+                console.log('ход врагов');
+                console.log(enemiesArray, '\n');
+                //console.log(enemiesArray)
+                enemiesArray = moveEnemies(enemiesArray);
+                let obj = {};
+                enemiesArray.forEach((item) => {
+                    obj.newPos = item.position;
+                    obj.prewPos = item.prewPos;
+                    io.sockets.emit('enemies_move', obj);
+                });
+                resetPlayersState(players);
+
+                console.log(enemiesArray);
+            }
+
             console.log(players);
         }
     });
+
+    // if (playersMoveCompleted(players)) {
+    //     console.log('ход врагов');
+    //     enemiesArray = moveEnemies(enemiesArray);
+    //     moveEnemies();
+    //     let obj = {};
+    //     // enemiesArray.forEach((item) => {
+    //     //     obj.newPos = item.position,
+    //     //         obj.prewPos = item.prewPos
+    //     // });
+    //     io.sockets.emit('enemies_move', obj)
+    // }
+    // io.sockets.emit('enemies_move', (obj) => {
+    //     console.log('ход врагов');
+    //     enemiesArray = moveEnemies(enemiesArray);
+    //     moveEnemies();
+    //     obj.newPos = 0;
+    //     obj.prewPos = 1;
+    // })
 
     socket.on('disconnect', () => {
         players.delete(player);

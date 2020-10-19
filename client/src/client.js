@@ -88,10 +88,19 @@ socket.on('spawn_enemies', data => {
     moveCompleted = 0;
 })
 
+socket.on('enemies_move', data => {
+    if (data.prewPos !== data.newPos) {
+        let newEnemyPosition = document.querySelector(`.square-${data.newPos}`);
+        newEnemyPosition.classList.add('square-busy_enemy');
+        let prewEnemyrPosition = document.querySelector(`.square-${data.prewPos}`);
+        prewEnemyrPosition.classList.remove('square-busy_enemy');
+        moveCompleted = 0;
+    }
+
+})
 
 socket.on('movement', data => {
-
-    if (data.prewPos !== `square-${data.newPos}` && !moveCompleted) {
+    if (data.prewPos !== `square-${data.newPos}`) {
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
