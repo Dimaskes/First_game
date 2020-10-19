@@ -29,8 +29,18 @@ const createEnemies = () => {
     return enemies;
 }
 
-
 const isBusy = (firstPos, secondPos) => firstPos === secondPos;
+
+const playersMoveCompleted = (players) => {
+    let tmp = 0;
+    players.forEach((item) => {
+        tmp += item.state;
+    });
+    if (tmp === 2) {
+        return true;
+    }
+    return false;
+}
 
 
 const goUp = (curPosition) => {
@@ -97,6 +107,18 @@ io.on('connection', (socket) => {
         players.add(player);
         io.sockets.emit('first_player_position', data);
         console.log(players);
+
+        arr = createEnemies();
+        console.log(arr.keys())
+
+        if (playersMoveCompleted(players)) {
+            console.log('ходит компьютер');
+            arr = createEnemies();
+            console.log(arr)
+                // io.sockets.emit('spawn_enemies', { pos: arr.Enemy.position })
+        }
+
+
         // let playersCollision = false;
 
         // console.log(Array.from(players).some(function(item) {
@@ -125,13 +147,7 @@ io.on('connection', (socket) => {
 
 
     socket.on('movement', (data) => {
-        // let tmp = 0;
-        // players.forEach((item) => {
-        //     tmp += item.state
-        // });
-        // if (tmp === 2) {
-        //     console.log('Ходит компьютер')
-        // }
+
         let move = data.move;
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);

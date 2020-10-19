@@ -71,6 +71,10 @@ socket.on('first_player_position', data => {
     selectedPosition.classList.add('square-busy_player');
 });
 
+socket.on('spawn_enemies', data => {
+    console.log(data);
+})
+
 
 socket.on('movement', data => {
 
