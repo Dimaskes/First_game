@@ -16,7 +16,7 @@ board();
 let firstPositionSelected = false;
 let moveCompleted = 0;
 
-const spawnEnemy = (position) => {
+const spawnStones = (position) => {
     let tmp = `square-${position}`;
     let tmpClassElem = document.querySelector(`.${tmp}`);
     tmpClassElem.classList.add('square-busy_enemy');
@@ -50,7 +50,7 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (firstPositionSelected && !moveCompleted) {
+    if (firstPositionSelected) { //&& !moveCompleted
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
@@ -62,7 +62,7 @@ document.addEventListener('keydown', (event) => {
 const socket = io();
 
 squareWrap.addEventListener('click', (e) => {
-    if (!firstPositionSelected && Number(e.target.classList[1].slice(7)) > 31) {
+    if (!firstPositionSelected) {
         socket.emit('first_player_position', {
             playerID: socket.id,
             position: e.target.classList[1]
@@ -83,20 +83,8 @@ socket.on('first_player_position', data => {
     selectedPosition.classList.add('square-busy_player');
 });
 
-socket.on('spawn_enemies', data => {
-    spawnEnemy(data.position);
-    moveCompleted = 0;
-})
-
-socket.on('enemies_move', data => {
-    if (data.prewPos !== data.newPos) {
-        let newEnemyPosition = document.querySelector(`.square-${data.newPos}`);
-        newEnemyPosition.classList.add('square-busy_enemy');
-        let prewEnemyrPosition = document.querySelector(`.square-${data.prewPos}`);
-        prewEnemyrPosition.classList.remove('square-busy_enemy');
-        moveCompleted = 0;
-    }
-
+socket.on('spawn_stones', data => {
+    spawnStones(data.position);
 })
 
 socket.on('movement', data => {

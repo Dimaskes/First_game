@@ -1,17 +1,14 @@
 class Player {
 
-    constructor(socket_id) {
+    constructor(socket_id, points) {
         this.socket_id = socket_id;
-        this.state = 0;
+        this.points = points;
         this.position = null;
     }
 
     set(position) {
         this.position = position;
-        this.state = 1;
-    }
-    resetState() {
-        this.state = 0;
+
     }
 }
 

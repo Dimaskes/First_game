@@ -1,4 +1,4 @@
-class Enemy {
+class Stones {
 
     constructor(position) {
         this.position = position;
@@ -9,4 +9,4 @@ class Enemy {
     }
 }
 
-module.exports = Enemy;
+module.exports = Stones;
