@@ -96,10 +96,13 @@ function movement(strMove, busyClass) {
 let stonesArray = createStones();
 
 const posIsBusyByPlayer = (players, data) => {
+    if (typeof(data) === 'object') {
+        data = typeof(data.position) === 'number' ? data.position : Number(data.position.slice(7));
+    }
     let playersCollision = false;
     players.forEach((item) => {
         if (item.position !== null) {
-            if (isBusy(Number(data.position.slice(7)), Number(item.position.slice(7)))) {
+            if (isBusy(data, Number(item.position.slice(7)))) {
                 playersCollision = true;
             }
         }
@@ -108,9 +111,12 @@ const posIsBusyByPlayer = (players, data) => {
 }
 
 const posIsBusyByStone = (stones, data) => {
+    if (typeof(data) === 'object') {
+        data = typeof(data.position) === 'number' ? data.position : Number(data.position.slice(7));
+    }
     let stoneCollision = false;
     stones.forEach((item) => {
-        if (isBusy(Number(data.position.slice(7)), item.position)) {
+        if (isBusy(data, item.position)) {
             stoneCollision = true;
         }
     });
@@ -153,22 +159,7 @@ io.on('connection', (socket) => {
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);
 
-        let playersCollision = false;
-        let stoneCollision = false;
-
-        players.forEach((item) => {
-            if (isBusy(newPosition, Number(item.position.slice(7)))) {
-                playersCollision = true;
-            }
-        });
-
-        stonesArray.forEach((item) => {
-            if (isBusy(newPosition, item.position)) {
-                stoneCollision = true;
-            }
-        });
-
-        if (!playersCollision && !stoneCollision) {
+        if (!posIsBusyByPlayer(players, newPosition) && !posIsBusyByStone(stonesArray, newPosition)) {
 
             player.set(`square-${newPosition}`);
             players.add(player);
