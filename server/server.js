@@ -65,6 +65,8 @@ const goRight = (curPosition) => {
     return curPosition;
 };
 
+const arrayMove = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
+
 
 function movement(strMove, busyClass) {
     let newPosition = Number(busyClass.slice(7));
@@ -130,6 +132,12 @@ io.on('connection', (socket) => {
     players.add(player);
     console.log(player, 'подключился')
 
+    let connected = {};
+    connected.message = 'Вы подключились к игре!'
+    connected.points = player.points;
+
+    socket.emit('connected', connected);
+
     console.log('расстановка камней');
     let obj = {};
     stonesArray.forEach((item) => {
@@ -143,15 +151,16 @@ io.on('connection', (socket) => {
             player.set(data.position);
             players.add(player);
             io.sockets.emit('first_player_position', data);
+            data.points = player.points;
+            socket.emit('first_player_position', data)
         } else {
-            console.log('нельзя занимать одну клетку');
+            console.log('нельзя выбирать занятую клетку');
             socket.emit('first_player_position-error', {
-                message: 'вы выбрали занятую клетку',
+                message: 'нельзя выбирать занятую клетку',
                 state: false,
             })
         }
     });
-
 
     socket.on('movement', (data) => {
 
@@ -159,15 +168,24 @@ io.on('connection', (socket) => {
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);
 
+        //console.log(arrayMove.includes(move))
+
         if (!posIsBusyByPlayer(players, newPosition) && !posIsBusyByStone(stonesArray, newPosition)) {
 
+            players.forEach((item) => {
+                if (item.socket_id !== player.socket_id) {
+                    pointsSecondPlayer = item.points
+                }
+            });
+
             player.set(`square-${newPosition}`);
+            player.points -= 1;
             players.add(player);
 
             socket.broadcast.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
-                state: 0,
+                points: pointsSecondPlayer,
             })
 
             socket.emit('movement', {
@@ -175,6 +193,35 @@ io.on('connection', (socket) => {
                 prewPos: prewPosition,
                 points: player.points,
             });
+
+            console.log(players);
+        } else if (posIsBusyByPlayer(players, newPosition)) {
+
+            players.forEach((item) => {
+                if (item.socket_id !== player.socket_id) {
+                    pointsSecondPlayer = item.points
+                }
+            });
+
+            player.set(`square-${newPosition}`);
+            player.points -= 1;
+            players.add(player);
+
+            socket.broadcast.emit('movement', {
+                newPos: newPosition,
+                prewPos: prewPosition,
+                message: 'вы проиграли!',
+                points: pointsSecondPlayer,
+                gameOver: true,
+            })
+
+            socket.emit('movement', {
+                newPos: newPosition,
+                prewPos: prewPosition,
+                points: player.points,
+                message: 'вы выиграли!',
+                gameOver: true,
+            })
 
             console.log(players);
         }

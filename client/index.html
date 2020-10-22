@@ -10,9 +10,29 @@
 </head>
 
 <body>
-    <div class="container mx-auto" style="width: 200px; padding-top: 80px;">
-        <div class="test_div"></div>
-        <div class="square-wrap"></div>
+    <div class="container mx-auto" style="width: 800px; padding-top: 80px;">
+        <div class="wrapper">
+            <div class="cards">
+                <div class="card" style="width: 18rem;">
+                    <div class="card-header">
+                        Количество очков
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"></li>
+                    </ul>
+                </div>
+                <div class="card" style="width: 18rem; text-align: center;">
+                    <div class="card-body">
+                        <h5 class="card-title">События</h5>
+                        <p class="card-text"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="square-wrap"></div>
+        </div>
+
+
+
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="src/client.js"></script>

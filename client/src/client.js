@@ -14,7 +14,6 @@ const board = () => {
 board();
 
 let firstPositionSelected = false;
-let moveCompleted = 0;
 
 const spawnStones = (position) => {
     let tmp = `square-${position}`;
@@ -50,16 +49,19 @@ document.addEventListener('keydown', (event) => {
             getPressedKey = 'KeyD';
             break;
     }
-    if (firstPositionSelected) { //&& !moveCompleted
+    if (firstPositionSelected && points > 0 && !gameOver) {
         socket.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
+            points: points,
         });
     }
 
 });
 
 const socket = io();
+let points = 0;
+let gameOver = false;
 
 squareWrap.addEventListener('click', (e) => {
     if (!firstPositionSelected) {
@@ -68,13 +70,14 @@ squareWrap.addEventListener('click', (e) => {
             position: e.target.classList[1]
         });
         firstPositionSelected = true;
-        moveCompleted = 1;
     }
 });
 
+
 socket.on('first_player_position-error', data => {
     firstPositionSelected = data.state;
-    console.log(data.message);
+    document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
+
 })
 
 
@@ -87,13 +90,27 @@ socket.on('spawn_stones', data => {
     spawnStones(data.position);
 })
 
+
+socket.on('connected', data => {
+    points = data.points
+    document.querySelector('.list-group-item').innerHTML = data.points;
+    document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
+
+})
+
 socket.on('movement', data => {
     if (data.prewPos !== `square-${data.newPos}`) {
+        points = data.points;
+        document.querySelector('.list-group-item').innerHTML = points;
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
         prewPlayerPosition.classList.remove('square-busy_player');
-        moveCompleted = data.state;
+        if (data.message === 'вы выиграли!' || data.message === 'вы проиграли!') {
+            console.log(data.message);
+            document.querySelector('.card-text').innerHTML += `<strong>${data.message}</strong></br>`;
+            gameOver = data.gameOver;
+        }
     }
 })
 
