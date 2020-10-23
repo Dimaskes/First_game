@@ -1,3 +1,7 @@
+// стрельба за 3 ед. очков
+// parse JSON
+// рефакторинг кода 
+
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
@@ -32,7 +36,18 @@ const createStones = () => {
 
 const isBusy = (firstPos, secondPos) => firstPos === secondPos;
 
-const playerMoveCompleted = (player) => player.points === 0;
+const playersMoveCompleted = (players) => {
+    let countOfPoints = 0;
+
+    players.forEach((item) => {
+        countOfPoints += item.points;
+    })
+    if (countOfPoints === 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 const refreshPlayersPoints = (players) => {
     players.forEach((item) => {
@@ -223,9 +238,36 @@ io.on('connection', (socket) => {
                 gameOver: true,
             })
 
-            console.log(players);
         }
+
     });
+
+    socket.on('waiting_next_round', () => {
+
+        if (playersMoveCompleted(players)) {
+
+            players.forEach((item) => {
+                item.points = getRandomInt(1, 6);
+            })
+
+            players.forEach((item) => {
+                if (item.socket_id !== player.socket_id) {
+                    pointsSecondPlayer = item.points
+                }
+            });
+
+            socket.emit('next_round', {
+                points: player.points,
+                message: 'новый раунд!',
+            });
+            socket.broadcast.emit('next_round', {
+                points: pointsSecondPlayer,
+                message: 'новый раунд!',
+            });
+        }
+
+    });
+
 
     socket.on('disconnect', () => {
         players.delete(player);

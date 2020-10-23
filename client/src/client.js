@@ -107,11 +107,20 @@ socket.on('movement', data => {
         let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
         prewPlayerPosition.classList.remove('square-busy_player');
         if (data.message === 'вы выиграли!' || data.message === 'вы проиграли!') {
-            console.log(data.message);
             document.querySelector('.card-text').innerHTML += `<strong>${data.message}</strong></br>`;
             gameOver = data.gameOver;
         }
+        if (points === 0) {
+            socket.emit('waiting_next_round');
+        }
     }
+})
+
+
+socket.on('next_round', data => {
+    points = data.points;
+    document.querySelector('.list-group-item').innerHTML = points;
+    document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 })
 
 socket.on('refresh', () => {
