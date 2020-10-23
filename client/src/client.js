@@ -1,4 +1,5 @@
 const squareWrap = document.querySelector('.square-wrap');
+const btnNewGame = document.querySelector('.btn-newGame');
 
 const board = () => {
     let count = 0;
@@ -132,9 +133,16 @@ socket.json.on('fire', data => {
         if (points === 0 && !gameOver) {
             socket.json.emit('waiting_next_round');
         }
-
     }
+})
 
+
+btnNewGame.addEventListener('click', () => {
+    if (gameOver) {
+        window.location.reload();
+    } else {
+        document.querySelector('.card-text').innerHTML += `<br>Начать новую игру можно после завершения текущей</br>`;
+    }
 })
 
 

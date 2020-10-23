@@ -1,3 +1,7 @@
+body {
+    background-color: #fff6f6;
+}
+
 .wrapper {
     display: inline-flex;
 }
@@ -18,9 +22,9 @@
 }
 
 .square-busy_enemy {
-    background: red;
+    background: #7e7b7b;
 }
 
 .square-busy_player {
-    background: green;
+    background: #ffeb00;
 }
