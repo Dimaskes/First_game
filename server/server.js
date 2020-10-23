@@ -1,7 +1,3 @@
-// стрельба за 3 ед. очков
-// parse JSON
-// рефакторинг кода 
-
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
@@ -26,7 +22,7 @@ const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) +
 
 const createStones = () => {
     let stones = new Set();
-    let randCountStones = getRandomInt(5, 10);
+    let randCountStones = getRandomInt(7, 15);
     for (let i = 0; i < randCountStones; i++) {
         let enemy = new Stones(getRandomInt(0, 63));
         stones.add(enemy);
@@ -49,11 +45,6 @@ const playersMoveCompleted = (players) => {
     }
 }
 
-const refreshPlayersPoints = (players) => {
-    players.forEach((item) => {
-        item.points = getRandomInt(1, 6);
-    })
-}
 
 const goUp = (curPosition) => {
     if (curPosition > 7) {
@@ -68,17 +59,18 @@ const goDown = (curPosition) => {
     return curPosition;
 }
 const goLeft = (curPosition) => {
-    if (leftBoards.indexOf(curPosition) === -1) {
+    if (!leftBoards.includes(curPosition)) {
         return curPosition - 1;
     }
     return curPosition;
 };
 const goRight = (curPosition) => {
-    if (rightBoards.indexOf(curPosition) === -1) {
+    if (!rightBoards.includes(curPosition)) {
         return curPosition + 1;
     }
     return curPosition;
 };
+
 
 const arrayMove = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
 
@@ -87,12 +79,16 @@ function movement(strMove, busyClass) {
     let newPosition = Number(busyClass.slice(7));
     switch (strMove) {
         case 'ArrowUp':
+            newPosition = goUpFire(newPosition);
             break;
         case 'ArrowDown':
+            newPosition = goDownFire(newPosition);
             break;
         case 'ArrowLeft':
+            newPosition = goLeftFire(newPosition);
             break;
         case 'ArrowRight':
+            newPosition = goRightFire(newPosition);
             break;
         case 'KeyW':
             newPosition = goUp(newPosition);
@@ -141,6 +137,44 @@ const posIsBusyByStone = (stones, data) => {
 
 }
 
+const goUpFire = (nextFirePosition) => {
+    firePosition = goUp(nextFirePosition);
+    while (!posIsBusyByStone(stonesArray, firePosition) && !posIsBusyByPlayer(players, firePosition) && firePosition > 7) {
+        nextFirePosition = firePosition;
+        firePosition = goUp(nextFirePosition);
+    }
+    return firePosition
+}
+
+const goDownFire = (nextFirePosition) => {
+    firePosition = goDown(nextFirePosition);
+    while (!posIsBusyByStone(stonesArray, firePosition) && !posIsBusyByPlayer(players, firePosition) && firePosition < 56) {
+        nextFirePosition = firePosition;
+        firePosition = goDown(nextFirePosition);
+    }
+    return firePosition
+}
+
+const goLeftFire = (nextFirePosition) => {
+    firePosition = goLeft(nextFirePosition);
+    while (!posIsBusyByStone(stonesArray, firePosition) && !posIsBusyByPlayer(players, firePosition) && !leftBoards.includes(firePosition)) {
+        nextFirePosition = firePosition;
+        firePosition = goLeft(nextFirePosition);
+    }
+    return firePosition
+}
+
+const goRightFire = (nextFirePosition) => {
+    firePosition = goRight(nextFirePosition);
+    while (!posIsBusyByStone(stonesArray, firePosition) && !posIsBusyByPlayer(players, firePosition) && !rightBoards.includes(firePosition)) {
+        nextFirePosition = firePosition;
+        firePosition = goRight(nextFirePosition);
+    }
+    return firePosition
+}
+
+
+
 io.on('connection', (socket) => {
 
     let player = new Player(socket.id, getRandomInt(1, 6))
@@ -151,41 +185,88 @@ io.on('connection', (socket) => {
     connected.message = 'Вы подключились к игре!'
     connected.points = player.points;
 
-    socket.emit('connected', connected);
+    socket.json.emit('connected', connected);
 
     console.log('расстановка камней');
     let obj = {};
     stonesArray.forEach((item) => {
         obj.position = item.position;
-        io.sockets.emit('spawn_stones', obj);
+        io.sockets.json.emit('spawn_stones', obj);
     });
 
-    socket.on('first_player_position', (data) => {
+    socket.json.on('first_player_position', (data) => {
 
         if (!posIsBusyByPlayer(players, data) && !posIsBusyByStone(stonesArray, data)) {
             player.set(data.position);
             players.add(player);
-            io.sockets.emit('first_player_position', data);
+            io.sockets.json.emit('first_player_position', data);
             data.points = player.points;
-            socket.emit('first_player_position', data)
+            socket.json.emit('first_player_position', data)
         } else {
             console.log('нельзя выбирать занятую клетку');
-            socket.emit('first_player_position-error', {
+            socket.json.emit('first_player_position-error', {
                 message: 'нельзя выбирать занятую клетку',
                 state: false,
             })
         }
     });
 
-    socket.on('movement', (data) => {
+    socket.json.on('movement', (data) => {
 
         let move = data.move;
         let prewPosition = player.position;
         let newPosition = movement(move, prewPosition);
 
-        //console.log(arrayMove.includes(move))
+        if (!arrayMove.includes(move) && player.points >= 3) {
+            console.log(movement(move, prewPosition))
 
-        if (!posIsBusyByPlayer(players, newPosition) && !posIsBusyByStone(stonesArray, newPosition)) {
+            players.forEach((item) => {
+                if (item.socket_id !== player.socket_id) {
+                    pointsSecondPlayer = item.points
+                }
+            });
+
+            if (posIsBusyByPlayer(players, newPosition) || posIsBusyByStone(stonesArray, newPosition)) {
+                player.points -= 3;
+                players.add(player);
+
+                let curPlayer = {
+                    newPos: newPosition,
+                    prewPos: prewPosition,
+                    points: player.points,
+                    message: "вы уничтожили объект!",
+                };
+                let secPlayer = {
+                    newPos: newPosition,
+                    prewPos: prewPosition,
+                    points: pointsSecondPlayer,
+                    message: "противник уничтожил объект!",
+                };
+
+                socket.broadcast.json.emit('fire', secPlayer);
+
+                socket.json.emit('fire', curPlayer);
+
+                if (posIsBusyByPlayer(players, newPosition)) {
+                    curPlayer.message = 'вы выиграли!';
+                    secPlayer.message = 'вы проиграли!';
+                    curPlayer.gameOver = secPlayer.gameOver = true;
+
+                    socket.broadcast.json.emit('fire', secPlayer);
+                    socket.json.emit('fire', curPlayer);
+                }
+
+
+                stonesArray.forEach((item) => {
+                    if (item.position === newPosition) {
+                        stonesArray.delete(item)
+                    }
+                })
+
+            }
+        }
+
+        if (!posIsBusyByPlayer(players, newPosition) && !posIsBusyByStone(stonesArray, newPosition) && arrayMove.includes(move)) {
 
             players.forEach((item) => {
                 if (item.socket_id !== player.socket_id) {
@@ -197,20 +278,20 @@ io.on('connection', (socket) => {
             player.points -= 1;
             players.add(player);
 
-            socket.broadcast.emit('movement', {
+            socket.broadcast.json.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
                 points: pointsSecondPlayer,
             })
 
-            socket.emit('movement', {
+            socket.json.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
                 points: player.points,
             });
 
             console.log(players);
-        } else if (posIsBusyByPlayer(players, newPosition)) {
+        } else if (posIsBusyByPlayer(players, newPosition) && arrayMove.includes(move)) {
 
             players.forEach((item) => {
                 if (item.socket_id !== player.socket_id) {
@@ -222,7 +303,7 @@ io.on('connection', (socket) => {
             player.points -= 1;
             players.add(player);
 
-            socket.broadcast.emit('movement', {
+            socket.broadcast.json.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
                 message: 'вы проиграли!',
@@ -230,7 +311,7 @@ io.on('connection', (socket) => {
                 gameOver: true,
             })
 
-            socket.emit('movement', {
+            socket.json.emit('movement', {
                 newPos: newPosition,
                 prewPos: prewPosition,
                 points: player.points,
@@ -242,7 +323,7 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.on('waiting_next_round', () => {
+    socket.json.on('waiting_next_round', () => {
 
         if (playersMoveCompleted(players)) {
 
@@ -256,11 +337,11 @@ io.on('connection', (socket) => {
                 }
             });
 
-            socket.emit('next_round', {
+            socket.json.emit('next_round', {
                 points: player.points,
                 message: 'новый раунд!',
             });
-            socket.broadcast.emit('next_round', {
+            socket.broadcast.json.emit('next_round', {
                 points: pointsSecondPlayer,
                 message: 'новый раунд!',
             });
@@ -269,10 +350,10 @@ io.on('connection', (socket) => {
     });
 
 
-    socket.on('disconnect', () => {
+    socket.json.on('disconnect', () => {
         players.delete(player);
         console.log(player, 'отключился');
-        io.sockets.emit('refresh')
+        io.sockets.json.emit('refresh')
         stonesArray = createStones();
     });
 
@@ -280,9 +361,9 @@ io.on('connection', (socket) => {
 
 
 server.on('error', (err) => {
-    console.log('Server error: ', err);
+    console.log('Серверная ошибка: ', err);
 });
 
 server.listen(5000, () => {
-    console.log('Server started!')
+    console.log('Сервер запущен!')
 });

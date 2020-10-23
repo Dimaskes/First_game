@@ -50,7 +50,7 @@ document.addEventListener('keydown', (event) => {
             break;
     }
     if (firstPositionSelected && points > 0 && !gameOver) {
-        socket.emit('movement', {
+        socket.json.emit('movement', {
             playerID: socket.id,
             move: getPressedKey,
             points: points,
@@ -65,7 +65,7 @@ let gameOver = false;
 
 squareWrap.addEventListener('click', (e) => {
     if (!firstPositionSelected) {
-        socket.emit('first_player_position', {
+        socket.json.emit('first_player_position', {
             playerID: socket.id,
             position: e.target.classList[1]
         });
@@ -74,31 +74,31 @@ squareWrap.addEventListener('click', (e) => {
 });
 
 
-socket.on('first_player_position-error', data => {
+socket.json.on('first_player_position-error', data => {
     firstPositionSelected = data.state;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 
 })
 
 
-socket.on('first_player_position', data => {
+socket.json.on('first_player_position', data => {
     let selectedPosition = document.querySelector(`.${data.position}`);
     selectedPosition.classList.add('square-busy_player');
 });
 
-socket.on('spawn_stones', data => {
+socket.json.on('spawn_stones', data => {
     spawnStones(data.position);
 })
 
 
-socket.on('connected', data => {
+socket.json.on('connected', data => {
     points = data.points
     document.querySelector('.list-group-item').innerHTML = data.points;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 
 })
 
-socket.on('movement', data => {
+socket.json.on('movement', data => {
     if (data.prewPos !== `square-${data.newPos}`) {
         points = data.points;
         document.querySelector('.list-group-item').innerHTML = points;
@@ -111,18 +111,39 @@ socket.on('movement', data => {
             gameOver = data.gameOver;
         }
         if (points === 0) {
-            socket.emit('waiting_next_round');
+            socket.json.emit('waiting_next_round');
         }
     }
 })
 
+socket.json.on('fire', data => {
+    if (data.prewPos !== `square-${data.newPos}`) {
+        points = data.points;
+        document.querySelector('.list-group-item').innerHTML = points;
+        let prewPlayerPosition = document.querySelector(`.square-${data.newPos}`);
+        prewPlayerPosition.classList.remove('square-busy_enemy');
+        if (data.message === 'вы выиграли!' || data.message === 'вы проиграли!') {
+            document.querySelector('.card-text').innerHTML += `<strong>${data.message}</strong></br>`;
+            prewPlayerPosition.classList.remove('square-busy_player');
+            gameOver = data.gameOver;
+        } else {
+            document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
+        }
+        if (points === 0 && !gameOver) {
+            socket.json.emit('waiting_next_round');
+        }
 
-socket.on('next_round', data => {
+    }
+
+})
+
+
+socket.json.on('next_round', data => {
     points = data.points;
     document.querySelector('.list-group-item').innerHTML = points;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 })
 
-socket.on('refresh', () => {
+socket.json.on('refresh', () => {
     window.location.reload();
 })
