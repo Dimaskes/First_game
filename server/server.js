@@ -239,6 +239,23 @@ io.on('connection', (socket) => {
                 points: pointsSecondPlayer,
                 message: 'новый раунд!',
             });
+
+            // создание общего объекта Game с состоянием игры
+            // который можно будет скачать и загрузить на клиенте, чтобы восстановить
+            // состояние игры 
+
+            // let game = {};
+            // game.players = [...players];
+            // game.stones = [...stonesArray];
+            // json_game = JSON.stringify(game, null, 2)
+            // console.log(json_game)
+            // var fs = require('fs');
+            // fs.writeFile("test.txt", json_game, function(err) {
+            //     if (err) {
+            //         console.log(err);
+            //     }
+            // });
+            // console.log(JSON.parse(json_game))
         }
 
     });
