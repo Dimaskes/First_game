@@ -1,7 +1,7 @@
 const squareWrap = document.querySelector('.square-wrap');
 const btnNewGame = document.querySelector('.btn-newGame');
 
-const board = () => {
+(function renderBoard() {
     let count = 0;
     while (count < 8 * 8) {
         let item = document.createElement('div');
@@ -10,11 +10,7 @@ const board = () => {
         item.classList.add(`square-${count}`)
         count++;
     }
-};
-
-board();
-
-let firstPositionSelected = false;
+}());
 
 const spawnStones = (position) => {
     let tmp = `square-${position}`;
@@ -57,10 +53,10 @@ document.addEventListener('keydown', (event) => {
             points: points,
         });
     }
-
 });
 
 const socket = io();
+let firstPositionSelected = false;
 let points = 0;
 let gameOver = false;
 
@@ -78,8 +74,7 @@ squareWrap.addEventListener('click', (e) => {
 socket.json.on('first_player_position-error', data => {
     firstPositionSelected = data.state;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
-
-})
+});
 
 
 socket.json.on('first_player_position', data => {
@@ -89,36 +84,35 @@ socket.json.on('first_player_position', data => {
 
 socket.json.on('spawn_stones', data => {
     spawnStones(data.position);
-})
+});
 
 
 socket.json.on('connected', data => {
     points = data.points
     document.querySelector('.list-group-item').innerHTML = data.points;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
-
-})
+});
 
 socket.json.on('movement', data => {
-    if (data.prewPos !== `square-${data.newPos}`) {
+    if (`square-${data.prewPos}` !== `square-${data.newPos}`) {
         points = data.points;
         document.querySelector('.list-group-item').innerHTML = points;
         let newPlayerPosition = document.querySelector(`.square-${data.newPos}`);
         newPlayerPosition.classList.add('square-busy_player');
-        let prewPlayerPosition = document.querySelector(`.${data.prewPos}`);
+        let prewPlayerPosition = document.querySelector(`.square-${data.prewPos}`);
         prewPlayerPosition.classList.remove('square-busy_player');
         if (data.message === 'вы выиграли!' || data.message === 'вы проиграли!') {
             document.querySelector('.card-text').innerHTML += `<strong>${data.message}</strong></br>`;
             gameOver = data.gameOver;
         }
-        if (points === 0) {
+        if (points === 0 && !gameOver) {
             socket.json.emit('waiting_next_round');
         }
     }
-})
+});
 
 socket.json.on('fire', data => {
-    if (data.prewPos !== `square-${data.newPos}`) {
+    if (`square-${data.prewPos}` !== `square-${data.newPos}`) {
         points = data.points;
         document.querySelector('.list-group-item').innerHTML = points;
         let prewPlayerPosition = document.querySelector(`.square-${data.newPos}`);
@@ -134,8 +128,7 @@ socket.json.on('fire', data => {
             socket.json.emit('waiting_next_round');
         }
     }
-})
-
+});
 
 btnNewGame.addEventListener('click', () => {
     if (gameOver) {
@@ -143,15 +136,15 @@ btnNewGame.addEventListener('click', () => {
     } else {
         document.querySelector('.card-text').innerHTML += `<br>Начать новую игру можно после завершения текущей</br>`;
     }
-})
+});
 
 
 socket.json.on('next_round', data => {
     points = data.points;
     document.querySelector('.list-group-item').innerHTML = points;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
-})
+});
 
 socket.json.on('refresh', () => {
     window.location.reload();
-})
+});
