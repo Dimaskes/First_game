@@ -1,5 +1,7 @@
 const squareWrap = document.querySelector('.square-wrap');
 const btnNewGame = document.querySelector('.btn-newGame');
+// const btnDownload = document.querySelector('.btn-load');
+// const btnUpload = document.querySelector('.btn-upload');
 
 (function renderBoard() {
     let count = 0;
@@ -148,3 +150,12 @@ socket.json.on('next_round', data => {
 socket.json.on('refresh', () => {
     window.location.reload();
 });
+
+
+// btnDownload.addEventListener('click', () => {
+//     socket.emit('download-gameSate')
+// });
+
+// btnUpload.addEventListener('change', () => {
+//     console.log(btnUpload.files);
+// })

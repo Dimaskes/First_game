@@ -219,7 +219,7 @@ io.on('connection', (socket) => {
 
     socket.json.on('waiting_next_round', () => {
 
-        if (playersMoveCompleted(players)) {
+        if (playersMoveCompleted(players) && !player.gameOver) {
 
             players.forEach((item) => {
                 item.points = getRandomInt(1, 6);
@@ -239,26 +239,23 @@ io.on('connection', (socket) => {
                 points: pointsSecondPlayer,
                 message: 'новый раунд!',
             });
-
-            // создание общего объекта Game с состоянием игры
-            // который можно будет скачать и загрузить на клиенте, чтобы восстановить
-            // состояние игры 
-
-            // let game = {};
-            // game.players = [...players];
-            // game.stones = [...stonesArray];
-            // json_game = JSON.stringify(game, null, 2)
-            // console.log(json_game)
-            // var fs = require('fs');
-            // fs.writeFile("test.txt", json_game, function(err) {
-            //     if (err) {
-            //         console.log(err);
-            //     }
-            // });
-            // console.log(JSON.parse(json_game))
         }
 
     });
+
+    // скачивание общего объекта Game с сотоянием игры
+    // socket.json.on('download-gameSate', () => {
+    //     let game = {};
+    //     game.players = [...players];
+    //     game.stones = [...stonesArray];
+    //     json_game = JSON.stringify(game, null, 2);
+    //     let fs = require('fs');
+    //     fs.writeFile('game.txt', json_game, function(err) {
+    //         if (err) {
+    //             console.log('Произошла ошибка при записи файла ', err);
+    //         }
+    //     });
+    // })
 
     socket.json.on('disconnect', () => {
         players.delete(player);
