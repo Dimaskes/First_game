@@ -11,6 +11,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 let players = new Set();
+let fs = require('fs');
 let Player = require('./player');
 let Stones = require('./stones');
 let action = require("./actions.js");
@@ -244,18 +245,38 @@ io.on('connection', (socket) => {
     });
 
     // скачивание общего объекта Game с сотоянием игры
-    // socket.json.on('download-gameSate', () => {
-    //     let game = {};
-    //     game.players = [...players];
-    //     game.stones = [...stonesArray];
-    //     json_game = JSON.stringify(game, null, 2);
-    //     let fs = require('fs');
-    //     fs.writeFile('game.txt', json_game, function(err) {
-    //         if (err) {
-    //             console.log('Произошла ошибка при записи файла ', err);
-    //         }
-    //     });
-    // })
+    socket.json.on('download-gameSate', () => {
+        let game = {};
+        game.players = [...players];
+        game.stones = [...stonesArray];
+        json_game = JSON.stringify(game, null, 2);
+        fs.writeFile('game.txt', json_game, function(err) {
+            if (err) {
+                console.log('Произошла ошибка при записи файла ', err);
+            }
+        });
+    })
+
+    socket.json.on('upload-gameState', (filename) => {
+
+        fs.readFile(`${filename}`, function(err, data) {
+            if (err) throw err;
+            let gameArr = data.toString();
+            gameArr = JSON.parse(gameArr);
+
+            // load stones
+            stonesArray.forEach((item) => {
+                io.sockets.json.emit('delete_stones', { position: item.position });
+                stonesArray.delete(item);
+            });
+            gameArr.stones.forEach((item) => {
+                stonesArray.add(item);
+                io.sockets.json.emit('spawn_stones', { position: item.position });
+            });
+
+
+        })
+    })
 
     socket.json.on('disconnect', () => {
         players.delete(player);

@@ -1,0 +1,55 @@
+{
+  "players": [
+    {
+      "socket_id": "SwnhemW2HDRXtKmPAAAB",
+      "points": 1,
+      "position": "square-9"
+    },
+    {
+      "socket_id": "g23_ztjVNCLjh0AsAAAC",
+      "points": 1,
+      "position": "square-26"
+    }
+  ],
+  "stones": [
+    {
+      "position": 16
+    },
+    {
+      "position": 4
+    },
+    {
+      "position": 49
+    },
+    {
+      "position": 15
+    },
+    {
+      "position": 19
+    },
+    {
+      "position": 53
+    },
+    {
+      "position": 0
+    },
+    {
+      "position": 23
+    },
+    {
+      "position": 21
+    },
+    {
+      "position": 33
+    },
+    {
+      "position": 15
+    },
+    {
+      "position": 33
+    },
+    {
+      "position": 18
+    }
+  ]
+}

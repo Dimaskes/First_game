@@ -1,7 +1,7 @@
 const squareWrap = document.querySelector('.square-wrap');
 const btnNewGame = document.querySelector('.btn-newGame');
-// const btnDownload = document.querySelector('.btn-load');
-// const btnUpload = document.querySelector('.btn-upload');
+const btnDownload = document.querySelector('.btn-load');
+const btnUpload = document.querySelector('.btn-upload');
 
 (function renderBoard() {
     let count = 0;
@@ -152,10 +152,16 @@ socket.json.on('refresh', () => {
 });
 
 
-// btnDownload.addEventListener('click', () => {
-//     socket.emit('download-gameSate')
-// });
+btnDownload.addEventListener('click', () => {
+    socket.emit('download-gameSate')
+});
 
-// btnUpload.addEventListener('change', () => {
-//     console.log(btnUpload.files);
-// })
+btnUpload.addEventListener('change', () => {
+    let fileName = btnUpload.files.item(0).name;
+    socket.json.emit('upload-gameState', fileName)
+})
+
+socket.json.on('delete_stones', (data) => {
+    let stonePosition = document.querySelector(`.square-${data.position}`);
+    stonePosition.classList.remove('square-busy_enemy');
+})
