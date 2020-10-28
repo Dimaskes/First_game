@@ -61,20 +61,31 @@ const socket = io();
 let firstPositionSelected = false;
 let points = 0;
 let gameOver = false;
+let selectPos = true;
 
 squareWrap.addEventListener('click', (e) => {
     if (!firstPositionSelected) {
         socket.json.emit('first_player_position', {
-            playerID: socket.id,
             position: e.target.classList[1]
         });
         firstPositionSelected = true;
+    }
+    if (!selectPos) {
+        socket.json.emit('select-player', {
+            position: e.target.classList[1]
+        });
+        selectPos = true;
     }
 });
 
 
 socket.json.on('first_player_position-error', data => {
     firstPositionSelected = data.state;
+    document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
+});
+
+socket.json.on('select-player-error', data => {
+    selectPos = data.state;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 });
 
@@ -152,6 +163,10 @@ socket.json.on('refresh', () => {
 });
 
 
+
+
+
+
 btnDownload.addEventListener('click', () => {
     socket.emit('download-gameSate')
 });
@@ -164,4 +179,11 @@ btnUpload.addEventListener('change', () => {
 socket.json.on('delete_stones', (data) => {
     let stonePosition = document.querySelector(`.square-${data.position}`);
     stonePosition.classList.remove('square-busy_enemy');
+    firstPositionSelected = true;
+    selectPos = false;
+});
+
+socket.json.on('select-player', (data) => {
+    selectPos = data.state;
+    console.log(data.message);
 })

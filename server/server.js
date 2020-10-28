@@ -109,6 +109,8 @@ io.on('connection', (socket) => {
 
     socket.json.on('movement', (data) => {
 
+        console.log(players)
+
         let move = data.move;
         let prewPosition = Number(player.position.slice(7));
         let newPosition = movement(move, prewPosition);
@@ -250,7 +252,7 @@ io.on('connection', (socket) => {
         game.players = [...players];
         game.stones = [...stonesArray];
         json_game = JSON.stringify(game, null, 2);
-        fs.writeFile('game.txt', json_game, function(err) {
+        fs.writeFile('game.json', json_game, function(err) {
             if (err) {
                 console.log('Произошла ошибка при записи файла ', err);
             }
@@ -274,8 +276,37 @@ io.on('connection', (socket) => {
                 io.sockets.json.emit('spawn_stones', { position: item.position });
             });
 
+            // load players
+            players.forEach((item) => players.delete(item))
+            gameArr.players.forEach((item) => {
+                players.add(item);
+                io.sockets.json.emit('first_player_position', { position: item.position })
+            })
+
+            // gameArr.players.forEach((item) => {
+            //     if (item.socket_id !== player.socket_id) {
+            //         pointsSecondPlayer = item.points
+            //     }
+            // });
+
 
         })
+    })
+
+    socket.json.on('select-player', (data) => {
+        if (isBusy.byPlayer(players, data)) {
+            player.set(data.position);
+            console.log(player);
+            socket.broadcast.json.emit('select-player', {
+                state: true,
+                message: 'второй игрок уже выбрал пешку',
+            })
+        } else {
+            socket.json.emit('select-player-error', {
+                message: 'можно выбрать только игрока',
+                state: false,
+            })
+        }
     })
 
     socket.json.on('disconnect', () => {
