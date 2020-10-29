@@ -61,7 +61,6 @@ const socket = io();
 let firstPositionSelected = false;
 let points = 0;
 let gameOver = false;
-let selectPos = true;
 
 squareWrap.addEventListener('click', (e) => {
     if (!firstPositionSelected) {
@@ -69,12 +68,6 @@ squareWrap.addEventListener('click', (e) => {
             position: e.target.classList[1]
         });
         firstPositionSelected = true;
-    }
-    if (!selectPos) {
-        socket.json.emit('select-player', {
-            position: e.target.classList[1]
-        });
-        selectPos = true;
     }
 });
 
@@ -84,11 +77,19 @@ socket.json.on('first_player_position-error', data => {
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
 });
 
-socket.json.on('select-player-error', data => {
-    selectPos = data.state;
+socket.json.on('select-player', data => {
+    points = data.points;
+    document.querySelector('.list-group-item').innerHTML = points;
     document.querySelector('.card-text').innerHTML += `${data.message}</br>`;
+    if (!data.state) {
+        let isConfirm = confirm("Противник загрузил сохраненную игру\nОК-загрузить\nCancel-обновить страницу");
+        if (isConfirm) {
+            socket.json.emit('select-player')
+        } else {
+            window.location.reload();
+        }
+    }
 });
-
 
 socket.json.on('first_player_position', data => {
     let selectedPosition = document.querySelector(`.${data.position}`);
@@ -162,11 +163,6 @@ socket.json.on('refresh', () => {
     window.location.reload();
 });
 
-
-
-
-
-
 btnDownload.addEventListener('click', () => {
     socket.emit('download-gameSate')
 });
@@ -180,10 +176,12 @@ socket.json.on('delete_stones', (data) => {
     let stonePosition = document.querySelector(`.square-${data.position}`);
     stonePosition.classList.remove('square-busy_enemy');
     firstPositionSelected = true;
-    selectPos = false;
 });
 
-socket.json.on('select-player', (data) => {
-    selectPos = data.state;
-    console.log(data.message);
+socket.json.on('delete_players', (data) => {
+    let playerPosition = document.querySelector(`.${data.position}`);
+    console.log(playerPosition.classList)
+    if (layerPosition.classList.contains('square-busy_player')) {
+        playerPosition.classList.remove('square-busy_player');
+    }
 })

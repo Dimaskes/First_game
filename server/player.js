@@ -8,7 +8,12 @@ class Player {
 
     set(position) {
         this.position = position;
+    }
 
+    clear() {
+        this.socket_id = null;
+        this.points = null;
+        this.position = null;
     }
 }
 

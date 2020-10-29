@@ -77,6 +77,7 @@ function movement(strMove, newPosition) {
 let stonesArray = createStones();
 
 io.on('connection', (socket) => {
+    console.log(players)
 
     let player = new Player(socket.id, getRandomInt(1, 6))
     players.add(player);
@@ -108,8 +109,6 @@ io.on('connection', (socket) => {
     });
 
     socket.json.on('movement', (data) => {
-
-        console.log(players)
 
         let move = data.move;
         let prewPosition = Number(player.position.slice(7));
@@ -184,6 +183,8 @@ io.on('connection', (socket) => {
                 prewPos: prewPosition,
                 points: player.points,
             });
+
+            console.log(players)
 
         } else if (isBusy.byPlayer(players, newPosition) && arrayMove.includes(move)) {
 
@@ -277,37 +278,72 @@ io.on('connection', (socket) => {
             });
 
             // load players
-            players.forEach((item) => players.delete(item))
+            players.forEach((item) => {
+                io.sockets.json.emit('delete_players', { position: item.position });
+                players.delete(item);
+            })
+            uploadedPlayers = new Set();
             gameArr.players.forEach((item) => {
-                players.add(item);
-                io.sockets.json.emit('first_player_position', { position: item.position })
+                uploadedPlayers.add(item);
+                io.sockets.json.emit('first_player_position', { position: item.position });
             })
 
-            // gameArr.players.forEach((item) => {
-            //     if (item.socket_id !== player.socket_id) {
-            //         pointsSecondPlayer = item.points
-            //     }
-            // });
+            player.clear();
+            gameArr.players.forEach((item) => {
+                if (item.socket_id !== player.socket_id) {
+                    player.socket_id = reserveID = item.socket_id;
+                    player.position = item.position;
+                    player.points = item.points;
+                }
+            })
+            players.add(player);
 
-
+            socket.json.emit('select-player', {
+                points: player.points,
+                position: player.position,
+                message: `ожидание второго игрока, ваш персонаж на позиции ${player.position}`,
+                state: true,
+            })
+            socket.broadcast.json.emit('select-player', {
+                points: 0,
+                message: 'ожидание подтверждения загрузки игры',
+                state: false,
+            })
         })
     })
 
-    socket.json.on('select-player', (data) => {
-        if (isBusy.byPlayer(players, data)) {
-            player.set(data.position);
-            console.log(player);
-            socket.broadcast.json.emit('select-player', {
-                state: true,
-                message: 'второй игрок уже выбрал пешку',
-            })
-        } else {
-            socket.json.emit('select-player-error', {
-                message: 'можно выбрать только игрока',
-                state: false,
-            })
-        }
+    socket.json.on('select-player', () => {
+
+        player.clear();
+        uploadedPlayers.forEach((item) => {
+            if (item.socket_id !== reserveID) {
+                player.socket_id = item.socket_id;
+                player.position = item.position;
+                player.points = item.points;
+            }
+        })
+        players.add(player)
+
+        let pointsSecondPlayer;
+        players.forEach((item) => {
+            if (item.socket_id !== player.socket_id) {
+                pointsSecondPlayer = item.points
+            }
+        });
+
+        socket.json.emit('select-player', {
+            points: player.points,
+            state: true,
+            message: `игра продолжается! Ваш персонаж на позиции ${player.position}`,
+        })
+        socket.broadcast.json.emit('select-player', {
+            points: pointsSecondPlayer,
+            state: true,
+            message: 'игра продолжается!'
+        })
     })
+
+
 
     socket.json.on('disconnect', () => {
         players.delete(player);
