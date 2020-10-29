@@ -169,19 +169,16 @@ btnDownload.addEventListener('click', () => {
 
 btnUpload.addEventListener('change', () => {
     let fileName = btnUpload.files.item(0).name;
-    socket.json.emit('upload-gameState', fileName)
+    socket.json.emit('upload-gameState', fileName);
 })
 
 socket.json.on('delete_stones', (data) => {
     let stonePosition = document.querySelector(`.square-${data.position}`);
     stonePosition.classList.remove('square-busy_enemy');
-    firstPositionSelected = true;
+    //firstPositionSelected = true;
 });
 
 socket.json.on('delete_players', (data) => {
     let playerPosition = document.querySelector(`.${data.position}`);
-    console.log(playerPosition.classList)
-    if (layerPosition.classList.contains('square-busy_player')) {
-        playerPosition.classList.remove('square-busy_player');
-    }
+    playerPosition.classList.remove('square-busy_player');
 })
