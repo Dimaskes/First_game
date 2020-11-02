@@ -1,0 +1,85 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/object1604308830.json",
+    "title": "Root",
+    "type": "object",
+    "required": [
+        "players",
+        "stones"
+    ],
+    "properties": {
+        "players": {
+            "$id": "#root/players",
+            "title": "Players",
+            "type": "array",
+            "default": [],
+            "items": {
+                "$id": "#root/players/items",
+                "title": "Items",
+                "type": "object",
+                "required": [
+                    "socket_id",
+                    "points",
+                    "position"
+                ],
+                "properties": {
+                    "socket_id": {
+                        "$id": "#root/players/items/socket_id",
+                        "title": "Socket_id",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                            "SwnhemW2HDRXtKmPAAAB"
+                        ],
+                        "pattern": "^.*$"
+                    },
+                    "points": {
+                        "$id": "#root/players/items/points",
+                        "title": "Points",
+                        "type": "integer",
+                        "examples": [
+                            3
+                        ],
+                        "default": 0
+                    },
+                    "position": {
+                        "$id": "#root/players/items/position",
+                        "title": "Position",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                            "square-9"
+                        ],
+                        "pattern": "^.*$"
+                    }
+                }
+            }
+
+        },
+        "stones": {
+            "$id": "#root/stones",
+            "title": "Stones",
+            "type": "array",
+            "default": [],
+            "items": {
+                "$id": "#root/stones/items",
+                "title": "Items",
+                "type": "object",
+                "required": [
+                    "position"
+                ],
+                "properties": {
+                    "position": {
+                        "$id": "#root/stones/items/position",
+                        "title": "Position",
+                        "type": "integer",
+                        "examples": [
+                            16
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,55 +1,61 @@
 {
   "players": [
     {
-      "socket_id": "SwnhemW2HDRXtKmPAAAB",
-      "points": 3,
-      "position": "square-9"
+      "socket_id": "4_TvTVWH_8TlAKQyAAAE",
+      "points": 4,
+      "position": "square-8"
     },
     {
-      "socket_id": "g23_ztjVNCLjh0AsAAAC",
-      "points": 5,
-      "position": "square-26"
+      "socket_id": "33vKZTIKvmtVe855AAAF",
+      "points": 6,
+      "position": "square-51"
     }
   ],
   "stones": [
     {
-      "position": 16
+      "position": 41
     },
     {
-      "position": 4
+      "position": 45
     },
     {
-      "position": 49
+      "position": 6
     },
     {
-      "position": 15
+      "position": 14
+    },
+    {
+      "position": 25
+    },
+    {
+      "position": 41
+    },
+    {
+      "position": 54
+    },
+    {
+      "position": 11
+    },
+    {
+      "position": 26
+    },
+    {
+      "position": 63
+    },
+    {
+      "position": 39
+    },
+    {
+      "position": 20
+    },
+    {
+      "position": 57
     },
     {
       "position": 19
     },
     {
-      "position": 53
-    },
-    {
-      "position": 0
-    },
-    {
-      "position": 23
-    },
-    {
-      "position": 21
-    },
-    {
-      "position": 33
-    },
-    {
-      "position": 15
-    },
-    {
-      "position": 33
-    },
-    {
-      "position": 18
+      "position": 58
     }
   ]
 }

@@ -20,8 +20,10 @@ let isBusy = require("./isBusyPosition.js");
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const createStones = () => {
+
     let stones = new Set();
     let randCountStones = getRandomInt(7, 15);
+
     for (let i = 0; i < randCountStones; i++) {
         let enemy = new Stones(getRandomInt(0, 63));
         stones.add(enemy);
@@ -30,6 +32,7 @@ const createStones = () => {
 }
 
 const playersMoveCompleted = (players) => {
+
     let countOfPoints = 0;
 
     players.forEach((item) => {
@@ -76,8 +79,31 @@ function movement(strMove, newPosition) {
 
 let stonesArray = createStones();
 
+function isValidJsonFile(validate, gameData) {
+    let isValid = validate(gameData);
+
+    if (isValid) {
+        console.log("Файл успешно загружен");
+    } else {
+        console.log("Нарушена структура загружаемого файла");
+        console.log(validate.errors);
+    }
+    return isValid;
+}
+
+function validateJsonFile(fileName) {
+    let Ajv = require('ajv');
+    let gameData = require(`./${fileName}`);
+    const gameSchema = require('./schema');
+
+    let ajv = Ajv({ allErrors: true });
+    let validate = ajv.compile(gameSchema);
+    let isValid = isValidJsonFile(validate, gameData);
+
+    return isValid;
+};
+
 io.on('connection', (socket) => {
-    console.log(players)
 
     let player = new Player(socket.id, getRandomInt(1, 6))
     players.add(player);
@@ -109,7 +135,7 @@ io.on('connection', (socket) => {
     });
 
     socket.json.on('movement', (data) => {
-
+        //console.log(players);
         let move = data.move;
         let prewPosition = Number(player.position.slice(7));
         let newPosition = movement(move, prewPosition);
@@ -247,7 +273,6 @@ io.on('connection', (socket) => {
 
     });
 
-    // скачивание общего объекта Game с сотоянием игры
     socket.json.on('download-gameSate', () => {
         let game = {};
         game.players = [...players];
@@ -258,57 +283,71 @@ io.on('connection', (socket) => {
                 console.log('Произошла ошибка при записи файла ', err);
             }
         });
+        socket.emit('download-gameSate', { message: 'Вы сохранили игру' });
     })
 
     socket.json.on('upload-gameState', (filename) => {
 
         fs.readFile(`${filename}`, function(err, data) {
+
             if (err) throw err;
-            let gameArr = data.toString();
-            gameArr = JSON.parse(gameArr);
 
-            // load stones
-            stonesArray.forEach((item) => {
-                io.sockets.json.emit('delete_stones', { position: item.position });
-                stonesArray.delete(item);
-            });
-            gameArr.stones.forEach((item) => {
-                stonesArray.add(item);
-                io.sockets.json.emit('spawn_stones', { position: item.position });
-            });
+            else if (validateJsonFile(filename)) {
 
-            // load players
-            players.forEach((item) => {
-                io.sockets.json.emit('delete_players', { position: item.position });
-                players.delete(item);
-            })
-            uploadedPlayers = new Set();
-            gameArr.players.forEach((item) => {
-                uploadedPlayers.add(item);
-                io.sockets.json.emit('first_player_position', { position: item.position });
-            })
+                socket.json.emit('uploadedState', {
+                    message: "Файлы успешно загружены!"
+                })
 
-            player.clear();
-            gameArr.players.forEach((item) => {
-                if (item.socket_id !== player.socket_id) {
-                    player.socket_id = reserveID = item.socket_id;
-                    player.position = item.position;
-                    player.points = item.points;
-                }
-            })
-            players.add(player);
+                let gameArr = data.toString();
+                gameArr = JSON.parse(gameArr);
 
-            socket.json.emit('select-player', {
-                points: player.points,
-                position: player.position,
-                message: `ожидание второго игрока, ваш персонаж на позиции ${player.position}`,
-                state: true,
-            })
-            socket.broadcast.json.emit('select-player', {
-                points: 0,
-                message: 'ожидание подтверждения загрузки игры',
-                state: false,
-            })
+                // load stones
+                stonesArray.forEach((item) => {
+                    io.sockets.json.emit('delete_stones', { position: item.position });
+                    stonesArray.delete(item);
+                });
+                gameArr.stones.forEach((item) => {
+                    stonesArray.add(item);
+                    io.sockets.json.emit('spawn_stones', { position: item.position });
+                });
+
+                // load players
+                players.forEach((item) => {
+                    io.sockets.json.emit('delete_players', { position: item.position });
+                    players.delete(item);
+                })
+                uploadedPlayers = new Set();
+                gameArr.players.forEach((item) => {
+                    uploadedPlayers.add(item);
+                    io.sockets.json.emit('first_player_position', { position: item.position });
+                })
+
+                player.clear();
+                gameArr.players.forEach((item) => {
+                    if (item.socket_id !== player.socket_id) {
+                        player.socket_id = reserveID = item.socket_id;
+                        player.position = item.position;
+                        player.points = item.points;
+                    }
+                })
+                players.add(player);
+
+                socket.json.emit('select-player', {
+                    points: player.points,
+                    position: player.position,
+                    message: `Ожидание второго игрока, ваш персонаж на позиции ${player.position}`,
+                    state: true,
+                })
+                socket.broadcast.json.emit('select-player', {
+                    points: 0,
+                    message: 'Ожидание подтверждения загрузки игры',
+                    state: false,
+                })
+            } else {
+                socket.json.emit('uploadedState', {
+                    message: "При чтении файла возникли проблемы!"
+                })
+            }
         })
     })
 
@@ -334,16 +373,14 @@ io.on('connection', (socket) => {
         socket.json.emit('select-player', {
             points: player.points,
             state: true,
-            message: `игра продолжается! Ваш персонаж на позиции ${player.position}`,
+            message: `Игра продолжается!</br>Ваш персонаж на позиции ${player.position}`,
         })
         socket.broadcast.json.emit('select-player', {
             points: pointsSecondPlayer,
             state: true,
-            message: 'игра продолжается!'
+            message: 'Игра продолжается!'
         })
     })
-
-
 
     socket.json.on('disconnect', () => {
         players.delete(player);

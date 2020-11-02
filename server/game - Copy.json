@@ -1,0 +1,40 @@
+{
+  "players": [
+    {
+      "socket_id": "uFNahh6CKGuiirnUAAAI",
+      "points": 5,
+      "position": 5
+    },
+    {
+      "socket_id": "bWTTk9CuymnyvNaNAAAJ",
+      "points": 4,
+      "position": "square-46"
+    }
+  ],
+  "stones": [
+    {
+      "position": 39
+    },
+    {
+      "position": 27
+    },
+    {
+      "position": 15
+    },
+    {
+      "position": 23
+    },
+    {
+      "position": 42
+    },
+    {
+      "position": 25
+    },
+    {
+      "position": 43
+    },
+    {
+      "position": 33
+    }
+  ]
+}
