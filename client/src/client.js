@@ -204,3 +204,11 @@ socket.json.on('delete_players', (data) => {
     let playerPosition = document.querySelector(`.${data.position}`);
     playerPosition.classList.remove('square-busy_player');
 })
+
+socket.json.on('connect-error', (data) => {
+    renderMessage(data.message);
+    firstPositionSelected = data.state;
+    const overlay = document.createElement('div');
+    overlay.classList.add('overlay');
+    document.body.insertAdjacentElement('afterbegin', overlay);
+})

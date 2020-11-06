@@ -114,10 +114,15 @@ io.on('connection', (socket) => {
         points: player.points,
     });
 
-    let stone_obj = {};
+    if (players.size > 2) {
+        socket.json.emit('connect-error', {
+            message: 'Ошибка при подключении. [Количество игроков достаточно]',
+            state: true,
+        })
+    }
+
     stonesArray.forEach((item) => {
-        stone_obj.position = item.position;
-        io.sockets.json.emit('spawn_stones', stone_obj);
+        io.sockets.json.emit('spawn_stones', { position: item.position });
     });
 
     socket.json.on('first_player_position', (data) => {
@@ -209,8 +214,6 @@ io.on('connection', (socket) => {
                 prewPos: prewPosition,
                 points: player.points,
             });
-
-            console.log(players)
 
         } else if (isBusy.byPlayer(players, newPosition) && arrayMove.includes(move)) {
 
